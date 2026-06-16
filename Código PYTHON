@@ -1,0 +1,94 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+mu = 1.5
+h = 0.05
+t_0 = 0
+t_f = 20
+
+
+x_0 = 2.0
+v_0 = 0.0
+
+# Creación de vectores de tiempo y preasignación de memoria
+t = np.arange(t_0, t_f + h, h)
+n_steps = len(t)
+x = np.zeros(n_steps)
+v = np.zeros(n_steps)
+
+# Asignar valores iniciales
+x[0] = x_0
+v[0] = v_0
+
+# Definición del sistema de ecuaciones
+def derivadas(t, x, v, mu):
+    dx_dt = v
+    dv_dt = mu * (1 - x**2) * v - x
+    return np.array([dx_dt, dv_dt])
+
+# Bucle de integración de Runge-Kutta 4
+for i in range(n_steps - 1):
+    xi = x[i]
+    vi = v[i]
+    ti = t[i]
+    # k1
+    d1 = derivadas(ti, xi, vi, mu)
+    k1_x = h * d1[0]
+    k1_v = h * d1[1]
+    # k2
+    d2 = derivadas(ti + h/2, xi + k1_x/2, vi + k1_v/2, mu)
+    k2_x = h * d2[0]
+    k2_v = h * d2[1]
+    # k3
+    d3 = derivadas(ti + h/2, xi + k2_x/2, vi + k2_v/2, mu)
+    k3_x = h * d3[0]
+    k3_v = h * d3[1]
+    
+    # k4
+    d4 = derivadas(ti + h, xi + k3_x, vi + k3_v, mu)
+    k4_x = h * d4[0]
+    k4_v = h * d4[1]
+    
+    # Actualización de estado
+    x[i+1] = xi + (1/6) * (k1_x + 2*k2_x + 2*k3_x + k4_x)
+    v[i+1] = vi + (1/6) * (k1_v + 2*k2_v + 2*k3_v + k4_v)
+
+# --- Impresión de la Tabla de Datos ---
+print(f"{'Iteración':<10} | {'t (s)':<8} | {'x(t) (Desplazamiento)':<22} | {'v(t) (Velocidad)':<20}")
+print("-" * 68)
+
+# Imprimir las primeras 10 iteraciones
+for i in range(10):
+    print(f"{i:<10} | {t[i]:<8.2f} | {x[i]:<22.6f} | {v[i]:<20.6f}")
+print("-" * 68)
+# Imprimir el estado final
+print(f"Final ({n_steps-1})| {t[-1]:<8.2f} | {x[-1]:<22.6f} | {v[-1]:<20.6f}")
+
+# --- Generación de Gráficas ---
+plt.style.use('bmh')
+# Gráfica 1: Evolución temporal
+plt.figure(figsize=(10, 5))
+plt.plot(t, x, label='Desplazamiento $x(t)$', color='blue', linewidth=2)
+plt.plot(t, v, label='Velocidad $v(t)$', color='red', linestyle='--', linewidth=2)
+plt.title('Evolución Temporal del Amortiguador (Oscilador de van der Pol)')
+plt.xlabel('Tiempo (s)')
+plt.ylabel('Amplitud')
+plt.axhline(0, color='black', linewidth=1)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+# Gráfica 2: Espacio de fases
+plt.figure(figsize=(8, 6))
+plt.plot(x, v, color='purple', linewidth=1.5)
+plt.plot(x[0], v[0], 'go', label='Inicio (t=0)') # Punto de inicio
+plt.plot(x[-1], v[-1], 'ro', label='Fin (t=20)') # Punto final
+plt.title('Diagrama de Espacio de Fases (Ciclo Límite)')
+plt.xlabel('Desplazamiento $x(t)$')
+plt.ylabel('Velocidad $v(t)$')
+plt.axhline(0, color='black', linewidth=1)
+plt.axvline(0, color='black', linewidth=1)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
